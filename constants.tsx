@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Devotion, Badge } from './types';
+import { Devotion, Badge, MinistryEvent } from './types';
 
 export const INITIAL_DEVOTIONS: Devotion[] = [
   {
@@ -43,7 +43,36 @@ export const INITIAL_DEVOTIONS: Devotion[] = [
     prayer: "Jesus, diminui o meu eu para que Tu cresças. Que meu som abra caminho para a Tua presença. Amém.",
     challenge: "Ouvir com atenção o que o outro músico está tocando e ajustar seu volume."
   }
-  // Data for 52 weeks would follow this pattern...
+];
+
+export const INITIAL_EVENTS: MinistryEvent[] = [
+  {
+    id: 1,
+    title: "Ensaio Geral - Banda e Vocal",
+    date: "2024-05-18",
+    time: "19:30",
+    location: "Auditório Principal",
+    type: "rehearsal",
+    description: "Preparação para a conferência de jovens. Levar as cifras impressas ou no tablet."
+  },
+  {
+    id: 2,
+    title: "Culto de Celebração",
+    date: "2024-05-19",
+    time: "18:00",
+    location: "Templo",
+    type: "service",
+    description: "Check-in dos músicos às 17h00 para passagem de som."
+  },
+  {
+    id: 3,
+    title: "Reunião de Alinhamento Espiritual",
+    date: "2024-05-22",
+    time: "20:00",
+    location: "Sala de Reuniões",
+    type: "meeting",
+    description: "Momento de oração e leitura da palavra exclusiva para o ministério."
+  }
 ];
 
 export const BADGES: Badge[] = [

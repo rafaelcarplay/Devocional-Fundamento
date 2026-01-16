@@ -10,6 +10,16 @@ export interface Devotion {
   challenge: string;
 }
 
+export interface MinistryEvent {
+  id: number;
+  title: string;
+  date: string;
+  time: string;
+  location: string;
+  type: 'rehearsal' | 'service' | 'meeting' | 'special';
+  description?: string;
+}
+
 export interface User {
   id: string;
   name: string;
@@ -32,5 +42,6 @@ export interface Badge {
 export interface AppState {
   users: User[];
   devotions: Devotion[];
+  events: MinistryEvent[];
   currentUser: User | null;
 }
