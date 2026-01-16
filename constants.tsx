@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { Devotion, Badge, MinistryEvent } from './types';
+import { Devotion, Badge, MinistryEvent } from './types.ts';
 
 export const INITIAL_DEVOTIONS: Devotion[] = [
   {

@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import { HashRouter as Router, Routes, Route, Navigate, Link, useNavigate, useLocation } from 'react-router-dom';
-import { User, Devotion, Badge, MinistryEvent } from './types';
-import { INITIAL_DEVOTIONS, INITIAL_EVENTS, BADGES, MOTIVATIONAL_PHRASES } from './constants';
+import { User, Devotion, Badge, MinistryEvent } from './types.ts';
+import { INITIAL_DEVOTIONS, INITIAL_EVENTS, BADGES, MOTIVATIONAL_PHRASES } from './constants.tsx';
 
 // --- Auth Components ---
 const Login: React.FC<{ onLogin: (user: User) => void }> = ({ onLogin }) => {
@@ -189,7 +189,7 @@ const Signup: React.FC = () => {
                 required
               />
             </div>
-            <button type="submit" className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-xl transition-all shadow-lg mt-4">
+            <button type="submit" className="w-full py-4 bg-blue-600 hover:bg-blue-700 text-white font-bold rounded-2xl transition-all shadow-lg mt-4">
               Confirmar Cadastro
             </button>
           </form>
@@ -265,7 +265,6 @@ const Sidebar: React.FC<{ user: User, onLogout: () => void }> = ({ user, onLogou
 
   return (
     <>
-      {/* Mobile Top Bar */}
       <div className="md:hidden fixed top-0 left-0 w-full h-16 bg-white border-b border-slate-100 px-6 flex items-center justify-between z-40">
         <h1 className="brand text-xl font-bold text-blue-600">Devocional</h1>
         <div className="w-8 h-8 bg-blue-50 text-blue-600 rounded-full flex items-center justify-center font-bold text-xs uppercase">
@@ -273,7 +272,6 @@ const Sidebar: React.FC<{ user: User, onLogout: () => void }> = ({ user, onLogou
         </div>
       </div>
 
-      {/* Desktop Sidebar */}
       <div className="hidden md:flex flex-col w-64 h-screen bg-white border-r border-slate-100 fixed top-0 left-0 z-50">
         <div className="p-8">
           <h2 className="brand text-2xl font-bold text-blue-600">Fundamento</h2>
@@ -308,7 +306,6 @@ const Sidebar: React.FC<{ user: User, onLogout: () => void }> = ({ user, onLogou
         </div>
       </div>
 
-      {/* Mobile Bottom Nav */}
       <div className="md:hidden fixed bottom-0 left-0 w-full bg-white/80 backdrop-blur-md border-t border-slate-100 px-6 py-3 flex justify-around items-center z-50">
         {menuItems.map((item) => (
           <Link 
