@@ -14,7 +14,7 @@ const Login: React.FC<{ onLogin: (user: User) => void }> = ({ onLogin }) => {
   const handleLogin = (e: React.FormEvent) => {
     e.preventDefault();
     
-    // Login Admin Fixo
+    // Login Admin Root (Hardcoded conforme solicitado)
     if (email === 'adminfundamento' && password === 'Yeshua@2026') {
       const adminUser: User = {
         id: 'admin-root',
@@ -30,9 +30,12 @@ const Login: React.FC<{ onLogin: (user: User) => void }> = ({ onLogin }) => {
       return;
     }
 
-    // Login Membros
+    // Login Membros (Busca no LocalStorage atualizado)
     const storedUsers = JSON.parse(localStorage.getItem('devocional_users') || '[]');
-    const user = storedUsers.find((u: any) => (u.email === email || u.name === email) && u.password === password);
+    const user = storedUsers.find((u: any) => 
+      (u.email.toLowerCase() === email.toLowerCase() || u.name.toLowerCase() === email.toLowerCase()) && 
+      u.password === password
+    );
     
     if (user) {
       onLogin(user);
@@ -78,7 +81,7 @@ const Login: React.FC<{ onLogin: (user: User) => void }> = ({ onLogin }) => {
             />
           </div>
           {error && (
-            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 text-sm rounded-xl animate-shake">
+            <div className="flex items-center gap-2 p-3 bg-red-50 text-red-600 text-sm rounded-xl">
               <i className="fa-solid fa-circle-exclamation"></i>
               <span>{error}</span>
             </div>
@@ -108,9 +111,9 @@ const Signup: React.FC<{ onSignup: (u: User) => boolean }> = ({ onSignup }) => {
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
     const newUser: User = {
-      id: `u-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
-      name,
-      email,
+      id: `u-${Date.now()}-${Math.floor(Math.random() * 10000)}`,
+      name: name.trim(),
+      email: email.trim(),
       password,
       role: 'member',
       subRole: role,
@@ -200,43 +203,6 @@ const Signup: React.FC<{ onSignup: (u: User) => boolean }> = ({ onSignup }) => {
   );
 };
 
-// --- Dashboard Sub-Components ---
-const QuickReadModal: React.FC<{ devotion: Devotion, isOpen: boolean, onClose: () => void }> = ({ devotion, isOpen, onClose }) => {
-  if (!isOpen) return null;
-  return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm animate-fade-in">
-      <div className="bg-white rounded-3xl w-full max-w-lg overflow-hidden shadow-2xl animate-scale-in">
-        <div className="bg-blue-600 p-6 text-white flex justify-between items-center">
-          <h3 className="text-xl font-bold">Modo Leitura Rápida</h3>
-          <button onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-            <i className="fa-solid fa-xmark"></i>
-          </button>
-        </div>
-        <div className="p-8 space-y-6">
-          <div className="text-center">
-            <span className="text-xs font-bold text-blue-500 uppercase tracking-widest">Tema da Semana</span>
-            <h2 className="text-2xl font-bold text-slate-800 mt-1">{devotion.theme}</h2>
-            <p className="text-slate-500 font-medium">{devotion.reference}</p>
-          </div>
-          <div className="space-y-4">
-            <div className="p-4 bg-slate-50 rounded-2xl border border-slate-100">
-              <h4 className="text-xs font-bold text-slate-400 uppercase mb-2">Resumo da Reflexão</h4>
-              <p className="text-slate-700 italic">"{devotion.reflection.substring(0, 100)}..."</p>
-            </div>
-            <div className="p-4 bg-amber-50 rounded-2xl border border-amber-100">
-              <h4 className="text-xs font-bold text-amber-600 uppercase mb-2">Desafio Prático</h4>
-              <p className="text-amber-900 font-medium">{devotion.challenge}</p>
-            </div>
-          </div>
-          <button onClick={onClose} className="w-full py-4 bg-slate-800 text-white font-bold rounded-2xl hover:bg-slate-900 transition-colors">
-            Entendi, pronto para o ensaio!
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-};
-
 // --- Sidebar ---
 const Sidebar: React.FC<{ user: User, onLogout: () => void }> = ({ user, onLogout }) => {
   const location = useLocation();
@@ -290,7 +256,7 @@ const Sidebar: React.FC<{ user: User, onLogout: () => void }> = ({ user, onLogou
   );
 };
 
-// --- Main Pages ---
+// --- Main Views ---
 const Dashboard: React.FC<{ user: User, devotions: Devotion[], onCheckIn: (id: number) => void }> = ({ user, devotions, onCheckIn }) => {
   const devotion = useMemo(() => {
     const pending = devotions.find(d => !user.completedWeeks.includes(d.id));
@@ -300,7 +266,6 @@ const Dashboard: React.FC<{ user: User, devotions: Devotion[], onCheckIn: (id: n
   const isCompleted = user.completedWeeks.includes(devotion.id);
   const [showMotivation, setShowMotivation] = useState(false);
   const [motivationText, setMotivationText] = useState('');
-  const [isQuickReadOpen, setIsQuickReadOpen] = useState(false);
 
   const handleComplete = () => {
     onCheckIn(devotion.id);
@@ -313,8 +278,7 @@ const Dashboard: React.FC<{ user: User, devotions: Devotion[], onCheckIn: (id: n
 
   return (
     <div className="p-6 md:p-12 space-y-8 max-w-5xl mx-auto pb-32 md:pb-12 mt-16 md:mt-0">
-      <QuickReadModal devotion={devotion} isOpen={isQuickReadOpen} onClose={() => setIsQuickReadOpen(false)} />
-      <div className="relative bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-8 items-center overflow-hidden">
+      <div className="bg-white p-8 md:p-10 rounded-[2.5rem] border border-slate-100 shadow-sm flex flex-col md:flex-row gap-8 items-center overflow-hidden">
         <div className="flex-1 space-y-4 text-center md:text-left">
           <div className="inline-flex items-center gap-2 px-3 py-1 bg-blue-50 text-blue-600 rounded-full text-[10px] font-bold uppercase tracking-widest">
             <i className="fa-solid fa-sparkles"></i>
@@ -350,10 +314,6 @@ const Dashboard: React.FC<{ user: User, devotions: Devotion[], onCheckIn: (id: n
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="p-6 bg-slate-50 rounded-2xl border border-slate-100"><h4 className="text-blue-600 font-bold text-xs uppercase mb-2">Atitude</h4><p className="text-slate-700 text-sm">{devotion.application}</p></div>
                 <div className="p-6 bg-emerald-50 rounded-2xl border border-emerald-100"><h4 className="text-emerald-600 font-bold text-xs uppercase mb-2">Oração</h4><p className="text-emerald-900 text-sm italic">{devotion.prayer}</p></div>
-              </div>
-              <div className="p-8 bg-blue-900 rounded-3xl text-white flex flex-col md:flex-row gap-6 items-center">
-                <div className="w-16 h-16 bg-white/10 rounded-2xl flex items-center justify-center text-3xl flex-shrink-0 animate-pulse"><i className="fa-solid fa-bolt"></i></div>
-                <div className="text-center md:text-left"><h4 className="text-blue-300 font-bold text-xs uppercase">Desafio</h4><p className="text-xl font-bold">{devotion.challenge}</p></div>
               </div>
               {!isCompleted ? (
                 <button onClick={handleComplete} className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl transition-all shadow-2xl shadow-blue-200 flex items-center justify-center gap-4 text-xl active:scale-95">
@@ -396,47 +356,62 @@ const Dashboard: React.FC<{ user: User, devotions: Devotion[], onCheckIn: (id: n
   );
 };
 
-const History: React.FC<{ user: User, devotions: Devotion[] }> = ({ user, devotions }) => (
-  <div className="p-6 md:p-12 space-y-8 max-w-5xl mx-auto mt-16 md:mt-0">
-    <h2 className="text-3xl font-black text-slate-800">Minha Jornada</h2>
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-      {devotions.map(d => {
-        const done = user.completedWeeks.includes(d.id);
-        return (
-          <div key={d.id} className={`p-6 rounded-3xl border transition-all ${done ? 'bg-white border-blue-100 shadow-sm' : 'bg-slate-50 opacity-40'}`}>
-            <span className="text-[10px] font-black text-blue-500 uppercase">Semana {d.week}</span>
-            <h4 className="font-bold text-slate-800 my-2">{d.theme}</h4>
-            {done && <i className="fa-solid fa-circle-check text-emerald-500"></i>}
-          </div>
-        );
-      })}
-    </div>
-  </div>
-);
-
-const Events: React.FC<{ events: MinistryEvent[] }> = ({ events }) => {
-  const sorted = [...events].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-  const formatDate = (ds: string) => {
-    const [y, m, d] = ds.split('-').map(Number);
-    return new Date(y, m - 1, d).toLocaleDateString('pt-BR', { weekday: 'short', day: 'numeric', month: 'long' });
-  };
+// --- History Component ---
+// Added to handle the user's devotion journey
+const History: React.FC<{ user: User, devotions: Devotion[] }> = ({ user, devotions }) => {
   return (
     <div className="p-6 md:p-12 space-y-8 max-w-5xl mx-auto mt-16 md:mt-0">
-      <h2 className="text-3xl font-black text-slate-800">Escala e Eventos</h2>
-      <div className="grid gap-4">
-        {sorted.map(ev => (
-          <div key={ev.id} className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row gap-6">
-            <div className="bg-blue-50 p-4 rounded-2xl text-center md:min-w-[120px] flex flex-col items-center">
-              <i className={`fa-solid ${ev.type === 'rehearsal' ? 'fa-guitar' : 'fa-calendar'} text-blue-600 text-xl mb-2`}></i>
-              <span className="text-[10px] font-black uppercase text-blue-400">{ev.type}</span>
-            </div>
-            <div className="flex-1">
-              <h3 className="text-xl font-bold text-slate-800">{ev.title}</h3>
-              <div className="flex flex-wrap gap-4 mt-3 text-slate-500 text-sm">
-                <span><i className="fa-regular fa-calendar mr-2"></i>{formatDate(ev.date)}</span>
-                <span><i className="fa-regular fa-clock mr-2"></i>{ev.time}</span>
-                <span><i className="fa-solid fa-location-dot mr-2"></i>{ev.location}</span>
+      <h2 className="text-3xl font-black text-slate-800 tracking-tight">Sua Jornada</h2>
+      <div className="grid gap-6 pb-20 md:pb-0">
+        {devotions.map(d => {
+          const completed = user.completedWeeks.includes(d.id);
+          return (
+            <div key={d.id} className={`p-6 rounded-3xl border transition-all ${completed ? 'bg-white border-blue-100 shadow-sm' : 'bg-slate-50 border-transparent opacity-60'}`}>
+              <div className="flex justify-between items-start">
+                <div>
+                  <span className="text-[10px] font-black text-slate-400 uppercase">Semana {d.week}</span>
+                  <h3 className={`text-xl font-bold ${completed ? 'text-blue-600' : 'text-slate-600'}`}>{d.theme}</h3>
+                  <p className="text-slate-500 text-sm mt-1">{d.reference}</p>
+                </div>
+                {completed && (
+                  <div className="w-10 h-10 rounded-full bg-blue-50 text-blue-600 flex items-center justify-center">
+                    <i className="fa-solid fa-check"></i>
+                  </div>
+                )}
               </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+};
+
+// --- Events Component ---
+// Added to display upcoming ministry events
+const Events: React.FC<{ events: MinistryEvent[] }> = ({ events }) => {
+  return (
+    <div className="p-6 md:p-12 space-y-8 max-w-5xl mx-auto mt-16 md:mt-0">
+      <h2 className="text-3xl font-black text-slate-800 tracking-tight">Próximos Encontros</h2>
+      <div className="grid gap-6 pb-20 md:pb-0">
+        {events.map(e => (
+          <div key={e.id} className="bg-white p-6 rounded-3xl border border-slate-100 shadow-sm flex flex-col md:flex-row gap-6">
+            <div className="w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 flex flex-col items-center justify-center shrink-0">
+              <span className="text-[10px] font-black uppercase">Evento</span>
+              <span className="text-2xl font-black"><i className="fa-solid fa-calendar-day"></i></span>
+            </div>
+            <div className="flex-1 space-y-1">
+              <div className="flex items-center gap-2">
+                <span className={`text-[10px] px-2 py-0.5 rounded-full text-white font-bold uppercase ${e.type === 'rehearsal' ? 'bg-amber-500' : e.type === 'service' ? 'bg-blue-500' : 'bg-purple-500'}`}>
+                  {e.type}
+                </span>
+                <span className="text-slate-400 text-xs font-bold">{e.date} - {e.time}</span>
+              </div>
+              <h3 className="text-xl font-bold text-slate-800">{e.title}</h3>
+              <p className="text-slate-500 text-sm flex items-center gap-1">
+                <i className="fa-solid fa-location-dot"></i> {e.location}
+              </p>
+              {e.description && <p className="text-slate-600 text-sm mt-2">{e.description}</p>}
             </div>
           </div>
         ))}
@@ -445,14 +420,20 @@ const Events: React.FC<{ events: MinistryEvent[] }> = ({ events }) => {
   );
 };
 
-// --- Admin Panel ---
+// --- Admin Panel Component ---
 const AdminPanel: React.FC<{ 
-  devotions: Devotion[], events: MinistryEvent[], users: User[],
-  onUpdateDevotion: (d: Devotion) => void, onAddDevotion: (d: Devotion) => void,
-  onUpdateEvent: (e: MinistryEvent) => void, onAddEvent: (e: MinistryEvent) => void, onDeleteEvent: (id: number) => void,
-  onUpdateUser: (u: User) => void, onDeleteUser: (id: string) => void
+  devotions: Devotion[], 
+  events: MinistryEvent[], 
+  users: User[],
+  onUpdateDevotion: (d: Devotion) => void, 
+  onAddDevotion: (d: Devotion) => void,
+  onUpdateEvent: (e: MinistryEvent) => void, 
+  onAddEvent: (e: MinistryEvent) => void, 
+  onDeleteEvent: (id: number) => void,
+  onUpdateUser: (u: User) => void, 
+  onDeleteUser: (id: string) => void
 }> = ({ devotions, events, users, onUpdateDevotion, onAddDevotion, onUpdateEvent, onAddEvent, onDeleteEvent, onUpdateUser, onDeleteUser }) => {
-  const [activeTab, setActiveTab] = useState<'devotions' | 'events' | 'users'>('devotions');
+  const [activeTab, setActiveTab] = useState<'devotions' | 'events' | 'users'>('users');
   const [editingId, setEditingId] = useState<number | string | null>(null);
   const [formData, setFormData] = useState<any>(null);
   const [isAdding, setIsAdding] = useState(false);
@@ -465,27 +446,37 @@ const AdminPanel: React.FC<{
     setEditingId(null); setFormData(null);
   };
 
+  const handleAdd = () => {
+    if (activeTab === 'devotions') onAddDevotion(formData);
+    else if (activeTab === 'events') onAddEvent(formData);
+    setIsAdding(false); setFormData(null);
+  };
+
   return (
     <div className="p-6 md:p-12 space-y-8 max-w-5xl mx-auto mt-16 md:mt-0">
       <div className="flex justify-between items-center">
         <h2 className="text-3xl font-black text-slate-800 tracking-tight">Catedral do Conteúdo</h2>
         {activeTab !== 'users' && (
-          <button onClick={() => {setIsAdding(true); setFormData({});}} className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2"><i className="fa-solid fa-plus"></i> Novo</button>
+          <button onClick={() => {setIsAdding(true); setFormData({ id: Date.now() });}} className="bg-blue-600 text-white px-6 py-2 rounded-xl font-bold flex items-center gap-2"><i className="fa-solid fa-plus"></i> Novo</button>
         )}
       </div>
 
       <div className="flex gap-2 p-1 bg-slate-100 rounded-2xl w-fit">
-        {['devotions', 'events', 'users'].map((t: any) => (
-          <button key={t} onClick={() => setActiveTab(t)} className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === t ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}>{t === 'devotions' ? 'Semanas' : t === 'events' ? 'Eventos' : 'Membros'}</button>
+        {['users', 'devotions', 'events'].map((t: any) => (
+          <button key={t} onClick={() => setActiveTab(t)} className={`px-6 py-2 rounded-xl font-bold text-sm transition-all ${activeTab === t ? 'bg-white text-blue-600 shadow-sm' : 'text-slate-500'}`}>
+            {t === 'devotions' ? 'Semanas' : t === 'events' ? 'Eventos' : 'Membros'}
+          </button>
         ))}
       </div>
 
       <div className="space-y-4">
         {activeTab === 'users' && (
           <div className="grid gap-4">
-            <div className="bg-blue-50 p-4 rounded-2xl text-blue-800 font-bold text-sm">Total de membros registrados: {users.length}</div>
+            <div className="bg-blue-50 p-4 rounded-2xl text-blue-800 font-bold text-sm">
+              Membros registrados: {users.length}
+            </div>
             {users.map(u => (
-              <div key={u.id} className="bg-white p-6 rounded-3xl border border-slate-100 flex justify-between items-center">
+              <div key={u.id} className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
                 <div className="flex items-center gap-4">
                   <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white ${u.subRole === 'vocal' ? 'bg-purple-500' : 'bg-blue-500'}`}>{u.name.charAt(0)}</div>
                   <div>
@@ -496,8 +487,15 @@ const AdminPanel: React.FC<{
                     </div>
                   </div>
                 </div>
-                <div className="flex items-center gap-4">
-                  <div className="text-right"><p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Pontos</p><p className="font-black text-blue-600">{u.points}</p></div>
+                <div className="flex items-center gap-8 w-full md:w-auto justify-between md:justify-end">
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Pontos</p>
+                    <p className="font-black text-blue-600">{u.points}</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-[10px] font-bold text-slate-400 uppercase">Progresso</p>
+                    <p className="font-black text-slate-800">{u.completedWeeks.length} / {devotions.length}</p>
+                  </div>
                   <div className="flex gap-2">
                     <button onClick={() => handleEdit(u)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-blue-600 flex items-center justify-center"><i className="fa-solid fa-user-pen"></i></button>
                     <button onClick={() => onDeleteUser(u.id)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-red-600 flex items-center justify-center"><i className="fa-solid fa-trash-can"></i></button>
@@ -507,15 +505,17 @@ const AdminPanel: React.FC<{
             ))}
           </div>
         )}
+        
         {activeTab === 'devotions' && devotions.map(d => (
           <div key={d.id} className="bg-white p-6 rounded-3xl border border-slate-100 flex justify-between items-center">
             <div><span className="text-[10px] font-black text-slate-400 uppercase">Semana {d.week}</span><h3 className="font-bold text-slate-800">{d.theme}</h3></div>
             <button onClick={() => handleEdit(d)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-blue-600 flex items-center justify-center"><i className="fa-solid fa-pen"></i></button>
           </div>
         ))}
+
         {activeTab === 'events' && events.map(e => (
           <div key={e.id} className="bg-white p-6 rounded-3xl border border-slate-100 flex justify-between items-center">
-            <div><h3 className="font-bold text-slate-800">{e.title}</h3><p className="text-xs text-slate-400">{e.date}</p></div>
+            <div><h3 className="font-bold text-slate-800">{e.title}</h3><p className="text-xs text-slate-400">{e.date} - {e.time}</p></div>
             <div className="flex gap-2">
               <button onClick={() => handleEdit(e)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-blue-600 flex items-center justify-center"><i className="fa-solid fa-pen"></i></button>
               <button onClick={() => onDeleteEvent(e.id)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:text-red-600 flex items-center justify-center"><i className="fa-solid fa-trash"></i></button>
@@ -524,33 +524,43 @@ const AdminPanel: React.FC<{
         ))}
       </div>
 
-      {editingId && (
+      {(editingId || isAdding) && (
         <div className="fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white p-8 rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-scale-in">
-            <h3 className="text-2xl font-black text-slate-800 mb-6">Editar Registro</h3>
+          <div className="bg-white p-8 rounded-[2.5rem] w-full max-w-lg shadow-2xl animate-scale-in max-h-[90vh] overflow-y-auto">
+            <h3 className="text-2xl font-black text-slate-800 mb-6">{isAdding ? 'Novo Registro' : 'Editar Registro'}</h3>
             <div className="space-y-4">
               {activeTab === 'users' && (
                 <>
-                  <input className="w-full p-4 rounded-xl ring-1 ring-slate-100 outline-none focus:ring-2 focus:ring-blue-500" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Nome" />
-                  <input className="w-full p-4 rounded-xl ring-1 ring-slate-100 outline-none focus:ring-2 focus:ring-blue-500" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="Email/User" />
+                  <input className="w-full p-4 rounded-xl ring-1 ring-slate-100 outline-none focus:ring-2 focus:ring-blue-500" value={formData?.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="Nome" />
+                  <input className="w-full p-4 rounded-xl ring-1 ring-slate-100 outline-none focus:ring-2 focus:ring-blue-500" value={formData?.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="Email/User" />
                   <div className="grid grid-cols-2 gap-4">
-                    <select className="p-4 rounded-xl ring-1 ring-slate-100" value={formData.subRole} onChange={e => setFormData({...formData, subRole: e.target.value})}>
+                    <select className="p-4 rounded-xl ring-1 ring-slate-100" value={formData?.subRole} onChange={e => setFormData({...formData, subRole: e.target.value})}>
                       <option value="vocal">Vocal</option><option value="musician">Músico</option>
                     </select>
-                    <input className="p-4 rounded-xl ring-1 ring-slate-100" type="number" value={formData.points} onChange={e => setFormData({...formData, points: Number(e.target.value)})} placeholder="Pontos" />
+                    <input className="p-4 rounded-xl ring-1 ring-slate-100" type="number" value={formData?.points} onChange={e => setFormData({...formData, points: Number(e.target.value)})} placeholder="Pontos" />
                   </div>
                 </>
               )}
               {activeTab === 'devotions' && (
                 <>
-                  <input className="w-full p-4 rounded-xl ring-1 ring-slate-100" value={formData.theme} onChange={e => setFormData({...formData, theme: e.target.value})} placeholder="Tema" />
-                  <textarea className="w-full p-4 rounded-xl ring-1 ring-slate-100 h-32" value={formData.reflection} onChange={e => setFormData({...formData, reflection: e.target.value})} placeholder="Reflexão" />
+                  <input className="w-full p-4 rounded-xl ring-1 ring-slate-100" value={formData?.theme} onChange={e => setFormData({...formData, theme: e.target.value})} placeholder="Tema" />
+                  <input className="w-full p-4 rounded-xl ring-1 ring-slate-100" value={formData?.reference} onChange={e => setFormData({...formData, reference: e.target.value})} placeholder="Referência Bíblica" />
+                  <textarea className="w-full p-4 rounded-xl ring-1 ring-slate-100 h-32" value={formData?.reflection} onChange={e => setFormData({...formData, reflection: e.target.value})} placeholder="Reflexão" />
+                </>
+              )}
+              {activeTab === 'events' && (
+                <>
+                  <input className="w-full p-4 rounded-xl ring-1 ring-slate-100" value={formData?.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="Título" />
+                  <div className="grid grid-cols-2 gap-4">
+                    <input type="date" className="p-4 rounded-xl ring-1 ring-slate-100" value={formData?.date} onChange={e => setFormData({...formData, date: e.target.value})} />
+                    <input type="time" className="p-4 rounded-xl ring-1 ring-slate-100" value={formData?.time} onChange={e => setFormData({...formData, time: e.target.value})} />
+                  </div>
                 </>
               )}
             </div>
             <div className="flex gap-4 mt-8">
-              <button onClick={saveEdit} className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl">Salvar</button>
-              <button onClick={() => {setEditingId(null); setFormData(null);}} className="px-8 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl">Voltar</button>
+              <button onClick={isAdding ? handleAdd : saveEdit} className="flex-1 py-4 bg-blue-600 text-white font-bold rounded-2xl">Confirmar</button>
+              <button onClick={() => {setEditingId(null); setIsAdding(false); setFormData(null);}} className="px-8 py-4 bg-slate-100 text-slate-500 font-bold rounded-2xl">Voltar</button>
             </div>
           </div>
         </div>
@@ -559,15 +569,15 @@ const AdminPanel: React.FC<{
   );
 };
 
-// --- App Root ---
+// --- App Component Principal ---
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [devotions, setDevotions] = useState<Devotion[]>(INITIAL_DEVOTIONS);
   const [events, setEvents] = useState<MinistryEvent[]>(INITIAL_EVENTS);
   const [users, setUsers] = useState<User[]>([]);
 
-  // Carregamento inicial de dados
-  useEffect(() => {
+  // Carrega dados iniciais com merge atômico
+  const loadAllData = useCallback(() => {
     const savedDevs = localStorage.getItem('devocional_data_v2');
     if (savedDevs) setDevotions(JSON.parse(savedDevs));
 
@@ -578,22 +588,49 @@ const App: React.FC = () => {
     if (savedUsers) setUsers(JSON.parse(savedUsers));
 
     const logged = localStorage.getItem('devocional_current_user');
-    if (logged) setUser(JSON.parse(logged));
+    if (logged) {
+      const parsedLogged = JSON.parse(logged);
+      // Sincroniza o usuário logado com a versão mais recente na lista global (se for membro)
+      if (parsedLogged.role !== 'admin' && savedUsers) {
+        const globalList = JSON.parse(savedUsers);
+        const freshUser = globalList.find((u: User) => u.id === parsedLogged.id);
+        if (freshUser) {
+          setUser(freshUser);
+          localStorage.setItem('devocional_current_user', JSON.stringify(freshUser));
+        } else {
+          setUser(parsedLogged);
+        }
+      } else {
+        setUser(parsedLogged);
+      }
+    }
   }, []);
 
-  // Helper para salvar e atualizar estado de usuários simultaneamente
-  const saveUsersData = useCallback((updatedList: User[]) => {
+  useEffect(() => {
+    loadAllData();
+    // Listener para sincronização multi-aba
+    const syncHandler = (e: StorageEvent) => {
+      if (e.key === 'devocional_users' || e.key === 'devocional_data_v2' || e.key === 'devocional_current_user') {
+        loadAllData();
+      }
+    };
+    window.addEventListener('storage', syncHandler);
+    return () => window.removeEventListener('storage', syncHandler);
+  }, [loadAllData]);
+
+  const saveUsersToStorage = useCallback((updatedList: User[]) => {
     localStorage.setItem('devocional_users', JSON.stringify(updatedList));
     setUsers(updatedList);
   }, []);
 
   const handleSignup = (newUser: User) => {
-    const current = JSON.parse(localStorage.getItem('devocional_users') || '[]');
-    if (current.some((u: User) => u.email === newUser.email)) {
-      alert('Usuário já existe!'); return false;
+    const currentList = JSON.parse(localStorage.getItem('devocional_users') || '[]');
+    if (currentList.some((u: User) => u.email.toLowerCase() === newUser.email.toLowerCase())) {
+      alert('E-mail já cadastrado!');
+      return false;
     }
-    const updated = [...current, newUser];
-    saveUsersData(updated);
+    const newList = [...currentList, newUser];
+    saveUsersToStorage(newList);
     return true;
   };
 
@@ -608,52 +645,73 @@ const App: React.FC = () => {
   };
 
   const handleCheckIn = (id: number) => {
-    if (!user) return;
+    if (!user || user.role === 'admin') return;
     const isNew = !user.completedWeeks.includes(id);
     if (isNew) {
-      const updatedUser = { ...user, completedWeeks: [...user.completedWeeks, id], points: user.points + 10, streak: user.streak + 1, lastCheckIn: new Date().toISOString() };
+      const updatedUser: User = { 
+        ...user, 
+        completedWeeks: [...user.completedWeeks, id], 
+        points: user.points + 10, 
+        streak: user.streak + 1, 
+        lastCheckIn: new Date().toISOString() 
+      };
       setUser(updatedUser);
       localStorage.setItem('devocional_current_user', JSON.stringify(updatedUser));
-      const updatedList = JSON.parse(localStorage.getItem('devocional_users') || '[]').map((u: User) => u.id === updatedUser.id ? updatedUser : u);
-      saveUsersData(updatedList);
+      
+      const currentList = JSON.parse(localStorage.getItem('devocional_users') || '[]');
+      const newList = currentList.map((u: User) => u.id === updatedUser.id ? updatedUser : u);
+      saveUsersToStorage(newList);
     }
   };
 
+  // Funções Administrativas
   const handleUpdateDevotion = (upd: Devotion) => {
     const next = devotions.map(d => d.id === upd.id ? upd : d);
-    setDevotions(next); localStorage.setItem('devocional_data_v2', JSON.stringify(next));
+    setDevotions(next);
+    localStorage.setItem('devocional_data_v2', JSON.stringify(next));
   };
 
   const handleAddDevotion = (newDev: Devotion) => {
-    const next = [...devotions, newDev]; setDevotions(next); localStorage.setItem('devocional_data_v2', JSON.stringify(next));
+    const next = [...devotions, { ...newDev, id: Date.now(), week: devotions.length + 1 }];
+    setDevotions(next);
+    localStorage.setItem('devocional_data_v2', JSON.stringify(next));
   };
 
   const handleUpdateEvent = (upd: MinistryEvent) => {
     const next = events.map(e => e.id === upd.id ? upd : e);
-    setEvents(next); localStorage.setItem('devocional_events_v1', JSON.stringify(next));
+    setEvents(next);
+    localStorage.setItem('devocional_events_v1', JSON.stringify(next));
   };
 
   const handleAddEvent = (newEv: MinistryEvent) => {
-    const next = [...events, newEv]; setEvents(next); localStorage.setItem('devocional_events_v1', JSON.stringify(next));
+    const next = [...events, { ...newEv, id: Date.now() }];
+    setEvents(next);
+    localStorage.setItem('devocional_events_v1', JSON.stringify(next));
   };
 
   const handleDeleteEvent = (id: number) => {
-    const next = events.filter(e => e.id !== id); setEvents(next); localStorage.setItem('devocional_events_v1', JSON.stringify(next));
+    const next = events.filter(e => e.id !== id);
+    setEvents(next);
+    localStorage.setItem('devocional_events_v1', JSON.stringify(next));
   };
 
   const handleUpdateUser = (upd: User) => {
-    const next = users.map(u => u.id === upd.id ? upd : u);
-    saveUsersData(next);
+    const currentList = JSON.parse(localStorage.getItem('devocional_users') || '[]');
+    const newList = currentList.map((u: User) => u.id === upd.id ? upd : u);
+    saveUsersToStorage(newList);
+    // Se estiver editando a si mesmo (raro, mas possível para o admin logado), atualiza a sessão
     if (user && user.id === upd.id) {
-      setUser(upd); localStorage.setItem('devocional_current_user', JSON.stringify(upd));
+      setUser(upd);
+      localStorage.setItem('devocional_current_user', JSON.stringify(upd));
     }
   };
 
   const handleDeleteUser = (id: string) => {
-    if (id === 'admin-root') return alert('Admin principal não pode ser removido.');
-    if (confirm("Remover este membro?")) {
-      const next = users.filter(u => u.id !== id);
-      saveUsersData(next);
+    if (id === 'admin-root') return alert('Impossível remover o admin principal.');
+    if (confirm("Deseja realmente remover este membro? Todos os pontos e histórico serão excluídos.")) {
+      const currentList = JSON.parse(localStorage.getItem('devocional_users') || '[]');
+      const newList = currentList.filter((u: User) => u.id !== id);
+      saveUsersToStorage(newList);
     }
   };
 
@@ -668,8 +726,25 @@ const App: React.FC = () => {
                 <Route path="/" element={<Dashboard user={user} devotions={devotions} onCheckIn={handleCheckIn} />} />
                 <Route path="/history" element={<History user={user} devotions={devotions} />} />
                 <Route path="/events" element={<Events events={events} />} />
+                <Route path="/group" element={
+                  <div className="p-12 text-center text-slate-400">
+                    <h2 className="text-3xl font-black text-slate-800 mb-4">Unidade do Corpo</h2>
+                    <p>Funcionalidade de progresso coletivo em desenvolvimento.</p>
+                  </div>
+                } />
                 <Route path="/admin" element={user.role === 'admin' ? (
-                  <AdminPanel devotions={devotions} events={events} users={users} onUpdateDevotion={handleUpdateDevotion} onAddDevotion={handleAddDevotion} onUpdateEvent={handleUpdateEvent} onAddEvent={handleAddEvent} onDeleteEvent={handleDeleteEvent} onUpdateUser={handleUpdateUser} onDeleteUser={handleDeleteUser} />
+                  <AdminPanel 
+                    devotions={devotions} 
+                    events={events} 
+                    users={users} 
+                    onUpdateDevotion={handleUpdateDevotion} 
+                    onAddDevotion={handleAddDevotion} 
+                    onUpdateEvent={handleUpdateEvent} 
+                    onAddEvent={handleAddEvent} 
+                    onDeleteEvent={handleDeleteEvent} 
+                    onUpdateUser={handleUpdateUser} 
+                    onDeleteUser={handleDeleteUser} 
+                  />
                 ) : <Navigate to="/" />} />
                 <Route path="*" element={<Navigate to="/" />} />
               </Routes>
