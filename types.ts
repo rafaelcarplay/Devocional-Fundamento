@@ -24,7 +24,9 @@ export interface User {
   id: string;
   name: string;
   email: string;
+  password?: string;
   role: 'member' | 'admin';
+  subRole?: 'musician' | 'vocal';
   completedWeeks: number[]; // Array of devotion IDs
   points: number;
   lastCheckIn?: string; // ISO Date

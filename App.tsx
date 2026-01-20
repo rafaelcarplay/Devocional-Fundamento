@@ -95,7 +95,7 @@ const Login: React.FC<{ onLogin: (user: User) => void }> = ({ onLogin }) => {
   );
 };
 
-const Signup: React.FC = () => {
+const Signup: React.FC<{ onSignup: (u: any) => boolean }> = ({ onSignup }) => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -105,13 +105,6 @@ const Signup: React.FC = () => {
 
   const handleSignup = (e: React.FormEvent) => {
     e.preventDefault();
-    const storedUsers = JSON.parse(localStorage.getItem('devocional_users') || '[]');
-    
-    if (storedUsers.some((u: any) => u.email === email)) {
-      alert('Este usuário já existe!');
-      return;
-    }
-
     const newUser = {
       id: Date.now().toString(),
       name,
@@ -124,9 +117,11 @@ const Signup: React.FC = () => {
       streak: 0
     };
 
-    localStorage.setItem('devocional_users', JSON.stringify([...storedUsers, newUser]));
-    setSuccess(true);
-    setTimeout(() => navigate('/login'), 2000);
+    const isOk = onSignup(newUser);
+    if (isOk) {
+      setSuccess(true);
+      setTimeout(() => navigate('/login'), 2000);
+    }
   };
 
   return (
@@ -929,39 +924,45 @@ const AdminPanel: React.FC<{
           ))
         ) : (
           <div className="grid gap-4">
-            {users.map(u => (
-              <div key={u.id} className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white ${u.subRole === 'vocal' ? 'bg-purple-500' : 'bg-blue-500'}`}>
-                    {u.name.charAt(0)}
+            {users.length === 0 ? (
+              <div className="text-center py-10 bg-white rounded-3xl border border-dashed text-slate-400">
+                Nenhum usuário cadastrado ainda.
+              </div>
+            ) : (
+              users.map(u => (
+                <div key={u.id} className="bg-white p-6 rounded-3xl border border-slate-100 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+                  <div className="flex items-center gap-4">
+                    <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-white ${u.subRole === 'vocal' ? 'bg-purple-500' : 'bg-blue-500'}`}>
+                      {u.name.charAt(0)}
+                    </div>
+                    <div>
+                      <h3 className="font-bold text-slate-800">{u.name}</h3>
+                      <div className="flex gap-2 mt-1">
+                        <span className="text-[10px] px-2 py-0.5 bg-slate-100 rounded-full font-bold text-slate-500 uppercase">{u.email}</span>
+                        <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold text-white uppercase ${u.subRole === 'vocal' ? 'bg-purple-400' : 'bg-blue-400'}`}>
+                          {u.subRole === 'vocal' ? 'Vocal' : 'Músico'}
+                        </span>
+                      </div>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="font-bold text-slate-800">{u.name}</h3>
-                    <div className="flex gap-2 mt-1">
-                      <span className="text-[10px] px-2 py-0.5 bg-slate-100 rounded-full font-bold text-slate-500 uppercase">{u.email}</span>
-                      <span className={`text-[10px] px-2 py-0.5 rounded-full font-bold text-white uppercase ${u.subRole === 'vocal' ? 'bg-purple-400' : 'bg-blue-400'}`}>
-                        {u.subRole === 'vocal' ? 'Vocal' : 'Músico'}
-                      </span>
+                  
+                  <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
+                    <div className="text-right">
+                      <p className="text-[10px] font-black text-slate-400 uppercase">Pontos</p>
+                      <p className="font-black text-blue-600">{u.points}</p>
+                    </div>
+                    <div className="flex gap-2">
+                      <button onClick={() => startEditUser(u)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all flex items-center justify-center">
+                        <i className="fa-solid fa-user-pen"></i>
+                      </button>
+                      <button onClick={() => onDeleteUser(u.id)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center">
+                        <i className="fa-solid fa-user-minus"></i>
+                      </button>
                     </div>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-6 w-full md:w-auto justify-between md:justify-end">
-                  <div className="text-right">
-                    <p className="text-[10px] font-black text-slate-400 uppercase">Pontos</p>
-                    <p className="font-black text-blue-600">{u.points}</p>
-                  </div>
-                  <div className="flex gap-2">
-                    <button onClick={() => startEditUser(u)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-blue-50 hover:text-blue-600 transition-all flex items-center justify-center">
-                      <i className="fa-solid fa-user-pen"></i>
-                    </button>
-                    <button onClick={() => onDeleteUser(u.id)} className="w-10 h-10 rounded-xl bg-slate-50 text-slate-400 hover:bg-red-50 hover:text-red-600 transition-all flex items-center justify-center">
-                      <i className="fa-solid fa-user-minus"></i>
-                    </button>
-                  </div>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         )}
       </div>
@@ -989,6 +990,18 @@ const App: React.FC = () => {
     if (currentUser) setUser(JSON.parse(currentUser));
   }, []);
 
+  const handleSignup = (newUser: User) => {
+    const storedUsers = JSON.parse(localStorage.getItem('devocional_users') || '[]');
+    if (storedUsers.some((u: any) => u.email === newUser.email)) {
+      alert('Este usuário já existe!');
+      return false;
+    }
+    const updatedUsers = [...storedUsers, newUser];
+    localStorage.setItem('devocional_users', JSON.stringify(updatedUsers));
+    setUsers(updatedUsers);
+    return true;
+  };
+
   const handleLogin = (loggedUser: User) => {
     setUser(loggedUser);
     localStorage.setItem('devocional_current_user', JSON.stringify(loggedUser));
@@ -1006,10 +1019,9 @@ const App: React.FC = () => {
       const updatedUser: User = { ...user, completedWeeks: [...user.completedWeeks, devotionId], points: user.points + 10, streak: user.streak + 1, lastCheckIn: new Date().toISOString() };
       setUser(updatedUser);
       localStorage.setItem('devocional_current_user', JSON.stringify(updatedUser));
-      const storedUsers = JSON.parse(localStorage.getItem('devocional_users') || '[]');
-      const newUsers = storedUsers.map((u: User) => u.email === updatedUser.email ? updatedUser : u);
-      localStorage.setItem('devocional_users', JSON.stringify(newUsers));
-      setUsers(newUsers);
+      const updatedUsers = users.map((u: User) => u.email === updatedUser.email ? updatedUser : u);
+      localStorage.setItem('devocional_users', JSON.stringify(updatedUsers));
+      setUsers(updatedUsers);
     }
   };
 
@@ -1047,7 +1059,6 @@ const App: React.FC = () => {
     const next = users.map(u => u.id === updated.id ? updated : u);
     setUsers(next);
     localStorage.setItem('devocional_users', JSON.stringify(next));
-    // Se o admin editou a si mesmo (raro, mas possível), atualiza a sessão
     if (user && user.id === updated.id) {
       setUser(updated);
       localStorage.setItem('devocional_current_user', JSON.stringify(updated));
@@ -1095,7 +1106,7 @@ const App: React.FC = () => {
         ) : (
           <Routes>
             <Route path="/login" element={<Login onLogin={handleLogin} />} />
-            <Route path="/signup" element={<Signup />} />
+            <Route path="/signup" element={<Signup onSignup={handleSignup} />} />
             <Route path="*" element={<Navigate to="/login" />} />
           </Routes>
         )}
